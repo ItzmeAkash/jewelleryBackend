@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 import cv2
 import mediapipe as mp
 import numpy as np
-import os
+
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -32,13 +32,6 @@ earring_img = None
 necklace_img=None
 ring_img=None
 should_run = True 
-
-def get_available_camera_index():
-    """Check for available video devices and return the first available index."""
-    for i in range(10):  # Check the first 10 indices
-        if os.path.exists(f'/dev/video{i}'):
-            return i
-    return None
 
 
 def calculate_distance(point1, point2):
@@ -118,53 +111,9 @@ async def upload_ring(file: UploadFile = File(...)):
         return {"error": "Failed to load earring image."}
     return {"message": "Earring image uploaded successfully."}
 
-# def generate_video_bracelet():
-#     global should_run
-#     cap = cv2.VideoCapture(1)
-#     while cap.isOpened() and should_run:
-#         ret, frame = cap.read()
-#         if not ret:
-#             break
-
-#         frame = cv2.flip(frame, 1)
-#         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-#         results = hands.process(rgb_frame)
-
-#         if results.multi_hand_landmarks and bracelet_img is not None:
-#             for hand_landmarks in results.multi_hand_landmarks:
-#                 h, w, _ = frame.shape
-#                 wrist = hand_landmarks.landmark[0]
-#                 index_finger_base = hand_landmarks.landmark[5]
-
-#                 wrist_point = (int(wrist.x * w), int(wrist.y * h))
-#                 index_point = (int(index_finger_base.x * w), int(index_finger_base.y * h))
-#                 bracelet_size = max(1, calculate_distance(wrist_point, index_point))
-#                 x = max(0, wrist_point[0] - bracelet_size // 2)
-#                 y = max(0, wrist_point[1] - bracelet_size // 2)
-#                 bracelet_size = min(bracelet_size, frame.shape[1] - x, frame.shape[0] - y)
-
-#                 frame = overlay_transparent(frame, bracelet_img, x, y, (bracelet_size, bracelet_size))
-
-#         _, jpeg = cv2.imencode('.jpg', frame)
-#         yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
-#         # Check for manual termination
-#         if cv2.waitKey(1) & 0xFF == ord('q'):
-#             should_run = False
-#             break
-        
-#     cap.release()
-#     cv2.destroyAllWindows()
-
 def generate_video_bracelet():
     global should_run
-    camera_index = get_available_camera_index()
-    if camera_index is None:
-        raise RuntimeError("No available camera device found")
-
-    cap = cv2.VideoCapture(camera_index)
-    if not cap.isOpened():
-        raise RuntimeError(f"Cannot open camera device at index {camera_index}")
-
+    cap = cv2.VideoCapture(0)
     while cap.isOpened() and should_run:
         ret, frame = cap.read()
         if not ret:
@@ -191,16 +140,18 @@ def generate_video_bracelet():
 
         _, jpeg = cv2.imencode('.jpg', frame)
         yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+        # Check for manual termination
         if cv2.waitKey(1) & 0xFF == ord('q'):
             should_run = False
             break
         
     cap.release()
     cv2.destroyAllWindows()
-    
+
+
 def generate_video_earring():
     global should_run
-    cap = cv2.VideoCapture()
+    cap = cv2.VideoCapture(0)
     while cap.isOpened() and should_run:
         ret, frame = cap.read()
         if not ret:
