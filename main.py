@@ -77,6 +77,9 @@ async def upload_bracelet(file: UploadFile = File(...)):
         return {"error": "Failed to load bracelet image."}
     return {"message": "Bracelet image uploaded successfully."}
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Corn!"}
 
 @app.post("/upload/Earrings")
 async def upload_earring(file: UploadFile = File(...)):
