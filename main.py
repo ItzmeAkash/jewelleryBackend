@@ -113,7 +113,7 @@ async def upload_ring(file: UploadFile = File(...)):
 
 def generate_video_bracelet():
     global should_run
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     while cap.isOpened() and should_run:
         ret, frame = cap.read()
         if not ret:
@@ -151,7 +151,7 @@ def generate_video_bracelet():
 
 def generate_video_earring():
     global should_run
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture()
     while cap.isOpened() and should_run:
         ret, frame = cap.read()
         if not ret:
