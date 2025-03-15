@@ -2,7 +2,10 @@
 FROM python:3.10.16-slim
 
 # Install system dependencies and clean up to reduce image size
-RUN apt-get update
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -12,7 +15,6 @@ COPY . /app
 
 # Copy and install Python dependencies
 RUN pip install -r requirements.txt
-
 
 # Start Gunicorn to serve the app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
